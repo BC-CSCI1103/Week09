@@ -28,7 +28,11 @@ Among other things, Static Memory contains programs (or *images*) which, in the 
 image = text-segment + data-segment
 ```
 
-Dynamic Memory is "Dynamic" in the sense that it consists of two storage areas, the Call Stack and the Heap, that grow and shrink as a program executes. The Call Stack has storage for function variables and the Heap has storage for items that are too large to fit in one word of memory, e.g., tuples, lists, records and arrays.
+Dynamic Memory is "Dynamic" in the sense that it consists of two storage areas, the Call Stack and the Heap, that grow and shrink as a program executes. 
+
+![Dynamic Memory](./img/MemoryReview2.png)
+
+The Call Stack has storage for function variables and the Heap has storage for items that are too large to fit in one word of memory, e.g., tuples, lists, records and arrays.
 
 > It's worth noting that the Simple Virtual Machine has no Dynamic Memory at all, it has neither a Call Stack nor a Heap.
 
