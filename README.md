@@ -20,7 +20,7 @@ Robert Muller - Boston College
 
 A few weeks ago we saw that the user space of a computer's ephemeral memory has a static part and a dynamic part.
 
-![memory](./img/MemoryReview.png)
+<img src="./img/MemoryReview.png" width=500>
 
 Among other things, Static Memory contains programs (or *images*) which, in the Unix environment, are a combination of machine instructions stored in a *text-segment* (a curious name) and storage for fixed-sized data (such as strings) known as a *data-segment*.
 
@@ -30,7 +30,7 @@ image = text-segment + data-segment
 
 Dynamic Memory is "Dynamic" in the sense that it consists of two storage areas, the Call Stack and the Heap, that grow and shrink as a program executes. 
 
-![Dynamic Memory](./img/MemoryReview2.png)
+<img src="./img/MemoryReview2.png" witdth=200>
 
 The Call Stack has storage for function variables and the Heap has storage for items that are too large to fit in one word of memory, e.g., tuples, lists, records and arrays.
 
@@ -138,6 +138,7 @@ In the first few weeks of the course we made our way through most of OCaml's exp
 + *Sequencing expressions*: `expr1; expr2; expr3`
 + *While-loops*: ```while expr1 do expr2 done```
 + *For-loops*: ```for i = expr1 to expr2 do expr3 done```
++ *Exceptions:* `try expr with | Exn1 -> expr1 | ... | Exnk -> exprk`
 
 We'll look at each of these forms both from the low-level machine perspective, and also from the perspective of OCaml. In order to understand these features in terms of SVM we'll use the notation
 
@@ -220,7 +221,76 @@ loop expr1
 
 ---
 
-### 3. The Case for and the Problem with Mutation
+##### Exceptions
+
+When unusual circumstances occur during program execution, e.g., attempting to open a file that doesn't exist, control flow can be altered to allow for some sort of recovery. The mechanism, *exceptions*, are available in most modern programming languages. Consider the following simple code.
+
+```ocaml
+let three trigger =
+  print_endline "Entered three";
+  print_endline "Exiting three"
+
+let two trigger =
+  print_endline "Entered two";
+  three trigger;  
+  print_endline "Exiting two"
+
+let one trigger =
+  print_endline "Entered one";
+  two trigger;
+  print_endline "Exiting one"
+```
+
+Running this code with the call `one false` would produce
+
+```ocaml
+Entered one
+Entered two
+Entered three
+Exiting three
+Exiting two
+Exiting one
+```
+
+However, if we are concerned that something may go wrong during the execution of `two` or something it might call, we can embed our call to `two` in an exception handler.
+
+```ocaml
+exception Show of int
+
+let three trigger =
+  print_endline "Entered three";
+  if trigger then raise (Show 5) else ();
+  print_endline "Exiting three"
+
+let two trigger =
+  print_endline "Entered two";
+  three trigger;  
+  print_endline "Exiting two"
+
+let one trigger =
+  print_endline "Entered one";
+  (try
+    two trigger
+   with
+   | Show n -> Code.pfmt "In one, caught Show(%d) exception\n" n);
+  print_endline "Exiting one"
+```
+
+Running this code with `one true` would produce
+
+```ocaml
+Entered one
+Entered two
+Entered three
+In one, caught Show(5) exception
+Exiting one
+```
+
+Control has skipped over the remainder of both `three` and `two`, returning directly to the exception handler in `one`.  The call stack has been *unwound* to the point with the nearest handler for the `Show` exception.
+
+---
+
+#### The Case for and the Problem with Mutation
 
 ##### Generating Fresh Integers
 
@@ -375,73 +445,6 @@ there is a hidden dependency between the author's code and the code `Oslo.use` a
 The culprit here is neither aliasing nor mutation, it is the combination of aliasing with unconstrained mutation.
 
 ---
-
-### 4. Exceptions
-
-When unusual circumstances occur during program execution, e.g., attempting to open a file that doesn't exist, control flow can be altered to allow for some sort of recovery. The mechanism, *exceptions*, are available in most modern programming languages. Consider the following simple code.
-
-```ocaml
-let three trigger =
-  print_endline "Entered three";
-  print_endline "Exiting three"
-
-let two trigger =
-  print_endline "Entered two";
-  three trigger;  
-  print_endline "Exiting two"
-
-let one trigger =
-  print_endline "Entered one";
-  two trigger;
-  print_endline "Exiting one"
-```
-
-Running this code with the call `one false` would produce
-
-```ocaml
-Entered one
-Entered two
-Entered three
-Exiting three
-Exiting two
-Exiting one
-```
-
-However, if we are concerned that something may go wrong during the execution of `two` or something it might call, we can embed our call to `two` in an exception handler.
-
-```ocaml
-exception Show of int
-
-let three trigger =
-  print_endline "Entered three";
-  if trigger then raise (Show 5) else ();
-  print_endline "Exiting three"
-
-let two trigger =
-  print_endline "Entered two";
-  three trigger;  
-  print_endline "Exiting two"
-
-let one trigger =
-  print_endline "Entered one";
-  (try
-    two trigger
-   with
-   | Show n -> Code.pfmt "In one, caught Show(%d) exception\n" n);
-  print_endline "Exiting one"
-```
-
-Running this code with `one true` would produce
-
-```ocaml
-Entered one
-Entered two
-Entered three
-In one, caught Show(5) exception
-Exiting one
-```
-
-Control has skipped over the remainder of both `three` and `two`, returning directly to the exception handler in `one`.  The call stack has been *unwound* to the point with the nearest handler for the `Show` exception.
 
 
 ## 3. Working with Digital Audio
