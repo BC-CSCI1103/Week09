@@ -131,7 +131,7 @@ let b = deepCopy a
 
 ---
 
-### 2. Understanding Imperative Control Features
+## 2. Understanding Imperative Control Features
 
 In the first few weeks of the course we made our way through most of OCaml's expression features. In recent weeks we've been considering OCaml's imperative features, those that mimic the operation of the underlying machine. In particular, we've looked at
 
@@ -446,4 +446,4 @@ Control has skipped over the remainder of both `three` and `two`, returning dire
 
 ## 3. Working with Digital Audio
 
-Write this.
+See the slides in `slides/` and the code in `src/audio/`.
